@@ -1,0 +1,161 @@
+#%RAML 1.0
+baseUri: https://mocksvc.mulesoft.com/mocks/8c2a2432-0eea-452d-b863-48800559e108 # baseUri: https://mocksvc.mulesoft.com/mocks/729049e5-b77e-45cb-ac06-6c36d0732e11 # 
+title: Salesforce-Connect-SC
+version: 2.2
+
+/accounts:
+  get:
+    queryParameters:
+      Name:
+        description: "Company Name"
+        required: false
+        type: string
+      Phone:
+        description: "Company Phone Number"
+        required: false
+        type: string
+      State:
+        description: "State where company resides"
+        required: false
+        type: string
+      AccountType:
+        enum: [Customer - Direct, Customer - Channel]
+        required: false
+    responses: 
+      200:
+        body: 
+          application/json:
+            example: |
+          
+              {
+                "Account Name": "Edge Communications",
+                "Parent Account": " ",
+                "Account Number": "CD451796",
+                "Account Site": " ",
+                "Type": " ",
+                "Industry": "Electronics",
+                "Annual Revenue": "$139000000",
+                "Billing Address": "312 Constitution Place Austin, TX 78767 USA",
+                "Customer Priority": "Medium",
+                "SLA Expiriation Date": "6/1/2018",
+                "Number of Locations": "2",
+                "Active": "yes",
+                "Created By": "Steven Cisneros 5/7/2018 10:33 AM",
+                "Description": "Edge, founded in 1998, is a start-up based in Austin, TX. The company designs and manufactures a device to convert music from one digital format to another. Edge sells its product through retailers and its own website.",
+                "Custom Links": "Billing",
+                "Rating": "Hot",
+                "Phone": "(512)757-6000",
+                "Fax": "(512)757-9000",
+                "Website": "http://edgecomm.com",
+                "Ticker Symbol": "EDGE",
+                "Ownership": "Public",
+                "Employees": "1000",
+                "SIC Code": "6576",
+                "Shipping Address": "312 Constitution Place Austin, TX 78767 USA",
+                "SLA": "Silver",
+                "SLA Serial Number": "2657",
+                "Upsell Opportunity": "Maybe",
+                "Last Modified By": "Steven Cisneros 5/7/2018 10:33 AM"
+                
+              }
+
+
+  /{id}:
+    get:
+      responses: 
+        200:
+          body: 
+            plain/text:
+              example: "A single account has been retrieved"
+            application/json:
+              example: |
+                {
+                  "Account Name": "Edge Communications",
+                "Parent Account": " ",
+                "Account Number": "CD451796",
+                "Account Site": " ",
+                "Type": " ",
+                "Industry": "Electronics",
+                "Annual Revenue": "$139000000",
+                "Billing Address": "312 Constitution Place Austin, TX 78767 USA",
+                "Customer Priority": "Medium",
+                "SLA Expiriation Date": "6/1/2018",
+                "Number of Locations": "2",
+                "Active": "yes",
+                "Created By": "Steven Cisneros 5/7/2018 10:33 AM",
+                "Description": "Edge, founded in 1998, is a start-up based in Austin, TX. The company designs and manufactures a device to convert music from one digital format to another. Edge sells its product through retailers and its own website.",
+                "Custom Links": "Billing",
+                "Rating": "Hot",
+                "Phone": "(512)757-6000",
+                "Fax": "(512)757-9000",
+                "Website": "http://edgecomm.com",
+                "Ticker Symbol": "EDGE",
+                "Ownership": "Public",
+                "Employees": "1000",
+                "SIC Code": "6576",
+                "Shipping Address": "312 Constitution Place Austin, TX 78767 USA",
+                "SLA": "Silver",
+                "SLA Serial Number": "2657",
+                "Upsell Opportunity": "Maybe",
+                "Last Modified By": "Steven Cisneros 5/7/2018 10:33 AM"
+                }
+    post:
+      body: 
+        plain/text:
+          example: "A single account has been created"
+        application/json:
+          example: |
+            {
+            "Account Name": "Steven's Company",
+            "Parent Account": " ",
+            "Account Number": "SC011222333",
+            "Account Site": "Denver",
+            "Type": "Customer - Direct",
+            "Industry": "Electronics",
+            "Annual Revenue": "$330,000",
+            "Billing Address": "312 Constitution Place Austin, TX 78767 USA",
+                "Customer Priority": "Medium",
+                "SLA Expiriation Date": "6/1/2018",
+                "Number of Locations": "2",
+                "Active": "yes",
+                "Created By": "Steven Cisneros 5/7/2018 10:33 AM",
+                "Description": "Steven's Company, founded in 2017, is a start-up based in Denver, CO. The company designs and manufactures a device to convert music from one digital format to another. Edge sells its product through retailers and its own website.",
+                "Custom Links": "Billing",
+                "Rating": "Hot",
+                "Phone": "(303)757-6000",
+                "Fax": "(303)757-9000",
+                "Website": "http://stevensComp.com",
+                "Ticker Symbol": "EDGE",
+                "Ownership": "Public",
+                "Employees": "1000",
+                "SIC Code": "6576",
+                "Shipping Address": "633 17th Street, Denver, CO",
+                "SLA": "Silver",
+                "SLA Serial Number": "2657",
+                "Upsell Opportunity": "Maybe",
+                "Last Modified By": "Steven Cisneros 5/8/2018 10:33 AM"
+
+            }
+      responses: 
+        201:
+          body: 
+            application/json:
+              example: |
+                {"message": "Company was added"}    
+
+    put:
+      responses: 
+        200:
+          body: 
+            plain/text:
+              example: "The account has been updated"
+    delete:
+      responses: 
+        200:
+          body: 
+            application/json:
+              example: |
+                { "success":true, "message": "Account deleted" }  
+            
+                
+  
