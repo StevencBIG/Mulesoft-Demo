@@ -29,9 +29,20 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <set-variable variableName="id" value="#[message.inboundProperties.'http.uri.params'.get('id')]" doc:name="id"/>
         <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT AccountNumber,BillingState,Id,Name,Phone FROM Account WHERE Id = '#[flowVars.id]'" doc:name="Salesforce"/>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <choice doc:name="Choice">
+            <when expression="#[payload.equals(&quot;[]&quot;)]">
+                <set-payload value="#[payload]" doc:name="Retrieve Account"/>
+            </when>
+            <otherwise>
+                <set-property propertyName="http status code " value="404" doc:name="Property"/>
+                <set-payload value="There is no account associated with this ID " doc:name="Set Payload"/>
+            </otherwise>
+        </choice>
     </flow>
     <flow name="delete:/accounts/{id}:salesforce-connect-sc-config">
-        <set-payload value="{ &quot;success&quot;:true, &quot;message&quot;: &quot;Account deleted&quot; }" doc:name="Set Payload" />
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/accounts/{id}" allowedMethods="GET" doc:name="Copy_of_HTTP"/>
+        <set-variable variableName="id" value="#[message.inboundProperties.'http.uri.params'.get('id')]" doc:name="Copy_of_id"/>
+        <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT AccountNumber,BillingState,Id,Name,Phone FROM Account WHERE Id = '#[flowVars.id]'" doc:name="Copy_of_Salesforce"/>
     </flow>
     <flow name="post:/accounts/{id}:salesforce-connect-sc-config">
         <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
