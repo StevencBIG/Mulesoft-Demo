@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
     <http:listener-config name="salesforce-connect-sc-httpListenerConfig" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration" />
     <apikit:config name="salesforce-connect-sc-config" raml="salesforce-connect-sc.raml" consoleEnabled="false" doc:name="Router" />
     <sfdc:config name="Salesforce__Basic_Authentication" username="steven.cisneros@bitsinglass.com" password="BitsInGlass2018" securityToken="M9hfphcWpBcd9yMMnpIciAnQ8" doc:name="Salesforce: Basic Authentication" />
@@ -34,16 +35,35 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
                 <set-payload value="#[payload]" doc:name="Retrieve Account"/>
             </when>
             <otherwise>
-                <set-property propertyName="http status code " value="404" doc:name="Property"/>
+                <set-property propertyName="http status code " value="404" doc:name="HTTP status code 404"/>
                 <set-payload value="There is no account associated with this ID " doc:name="Set Payload"/>
             </otherwise>
         </choice>
     </flow>
     <flow name="delete:/accounts/{id}:salesforce-connect-sc-config">
-        <set-variable variableName="id" value="#[message.inboundProperties.'http.uri.params'.get('id')]" doc:name="Copy_of_id"/>
-        <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT AccountNumber,BillingState,Id,Name,Phone FROM Account WHERE Id = '#[flowVars.id]'" doc:name="Copy_of_Salesforce"/>
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/accounts/{id}" allowedMethods="DELETE" doc:name="HTTP"/>
+        <set-variable variableName="id" value="#[message.inboundProperties.'http.uri.params'.get('id')]" doc:name="id"/>
+        <set-payload value="#[[flowVars.id]]" doc:name="Set Payload"/>
+        <sfdc:delete config-ref="Salesforce__Basic_Authentication"  doc:name="Salesforce"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <logger message="Delete response = #[payload], Payload ID = #[payload.id]" level="INFO" doc:name="delete account "/>
+        <choice doc:name="Choice">
+            <when expression="#[payload.id == null]">
+                <set-payload value="the account with the id #[flowVars.id]" doc:name="account deleted "/>
+            </when>
+            <otherwise>
+                <set-property propertyName="http status code " value="409" doc:name="HTTP Status 409"/>
+                <set-payload value="The account could not successfully be deleted" doc:name="account was not deleted "/>
+            </otherwise>
+        </choice>
     </flow>
     <flow name="post:/accounts/{id}:salesforce-connect-sc-config">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
         <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
         <set-payload value="{&quot;message&quot;: &quot;Company was added&quot;}" doc:name="Set Payload" />
     </flow>
