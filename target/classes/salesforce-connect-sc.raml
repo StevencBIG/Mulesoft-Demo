@@ -2,6 +2,39 @@
 baseUri: https://mocksvc.mulesoft.com/mocks/8c2a2432-0eea-452d-b863-48800559e108 # baseUri: https://mocksvc.mulesoft.com/mocks/729049e5-b77e-45cb-ac06-6c36d0732e11 # 
 title: Salesforce-Connect-SC
 version: 2.2
+mediaType: application/json
+
+types: 
+  accountInfo:
+    properties: 
+      AccountName:
+        description: This is the name of the Company of the new account
+        type: string
+        required: true
+      ParentAccount:
+        description: The name of the parent account that the new Company stems from
+        type: string
+        required: false
+      Phone:
+        description: Phone number of the Company of the new account
+        type: string
+        required: true
+      Fax:
+        description: Fax number of the Company
+        type: string
+        required: false
+      Industry:
+        description: the category in which the Company falls under. ex) technology
+        type: string
+        required: true
+      State:
+        description: State in which the Company of the new account resides
+        type: string
+        required: true 
+      Description:
+        description: a brief description of the Company
+        type: string
+        required: true
 
 /accounts:
   get:
@@ -58,6 +91,25 @@ version: 2.2
                 "Last Modified By": "Steven Cisneros 5/7/2018 10:33 AM"
                 
               }
+  post:
+      body: 
+        type: accountInfo
+        example: |
+            {
+            "AccountName": "Steven's Company",
+            "ParentAccount": " ",
+            "Phone": "303-123-4567",
+            "Fax": "303-123-4568",
+            "Industry": "Technology",
+            "State": "CO",
+            "Description": "Steven's Company specializes gaming technology."
+            }
+      responses: 
+        201:
+          description: created
+          body: 
+            description: Return the new AccountNumber
+               
 
 
   /{id}:
@@ -99,50 +151,7 @@ version: 2.2
                 "Upsell Opportunity": "Maybe",
                 "Last Modified By": "Steven Cisneros 5/7/2018 10:33 AM"
                 }
-    post:
-      body: 
-        plain/text:
-          example: "A single account has been created"
-        application/json:
-          example: |
-            {
-            "Account Name": "Steven's Company",
-            "Parent Account": " ",
-            "Account Number": "SC011222333",
-            "Account Site": "Denver",
-            "Type": "Customer - Direct",
-            "Industry": "Electronics",
-            "Annual Revenue": "$330,000",
-            "Billing Address": "312 Constitution Place Austin, TX 78767 USA",
-                "Customer Priority": "Medium",
-                "SLA Expiriation Date": "6/1/2018",
-                "Number of Locations": "2",
-                "Active": "yes",
-                "Created By": "Steven Cisneros 5/7/2018 10:33 AM",
-                "Description": "Steven's Company, founded in 2017, is a start-up based in Denver, CO. The company designs and manufactures a device to convert music from one digital format to another. Edge sells its product through retailers and its own website.",
-                "Custom Links": "Billing",
-                "Rating": "Hot",
-                "Phone": "(303)757-6000",
-                "Fax": "(303)757-9000",
-                "Website": "http://stevensComp.com",
-                "Ticker Symbol": "EDGE",
-                "Ownership": "Public",
-                "Employees": "1000",
-                "SIC Code": "6576",
-                "Shipping Address": "633 17th Street, Denver, CO",
-                "SLA": "Silver",
-                "SLA Serial Number": "2657",
-                "Upsell Opportunity": "Maybe",
-                "Last Modified By": "Steven Cisneros 5/8/2018 10:33 AM"
-
-            }
-      responses: 
-        201:
-          body: 
-            application/json:
-              example: |
-                {"message": "Company was added"}    
-
+    
     put:
       responses: 
         200:

@@ -21,12 +21,10 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
         <apikit:console config-ref="salesforce-connect-sc-config" doc:name="APIkit Console" />
     </flow>
     <flow name="get:/accounts:salesforce-connect-sc-config">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="/accounts" allowedMethods="GET" doc:name="HTTP"/>
         <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT Id,AccountNumber,Name,Phone,BillingState FROM Account" doc:name="Salesforce"/>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
     </flow>
     <flow name="get:/accounts/{id}:salesforce-connect-sc-config">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="/accounts/{id}" allowedMethods="GET" doc:name="HTTP"/>
         <set-variable variableName="id" value="#[message.inboundProperties.'http.uri.params'.get('id')]" doc:name="id"/>
         <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT AccountNumber,BillingState,Id,Name,Phone FROM Account WHERE Id = '#[flowVars.id]'" doc:name="Salesforce"/>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
@@ -41,7 +39,6 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
         </choice>
     </flow>
     <flow name="delete:/accounts/{id}:salesforce-connect-sc-config">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="/accounts/{id}" allowedMethods="DELETE" doc:name="HTTP"/>
         <set-variable variableName="id" value="#[message.inboundProperties.'http.uri.params'.get('id')]" doc:name="id"/>
         <set-payload value="#[[flowVars.id]]" doc:name="Set Payload"/>
         <sfdc:delete config-ref="Salesforce__Basic_Authentication"  doc:name="Salesforce"/>
@@ -62,8 +59,7 @@ payload]]></dw:set-payload>
             </otherwise>
         </choice>
     </flow>
-    <flow name="post:/accounts/{id}:salesforce-connect-sc-config">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
+    <flow name="post:/accounts:salesforce-connect-sc-config">
         <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
         <set-payload value="{&quot;message&quot;: &quot;Company was added&quot;}" doc:name="Set Payload" />
     </flow>
