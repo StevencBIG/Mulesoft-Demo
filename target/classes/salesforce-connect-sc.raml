@@ -106,9 +106,8 @@ types:
             }
       responses: 
         201:
-          description: created
           body: 
-            description: Return the new AccountNumber
+            description: Successfully created a new company account.
                
 
 
@@ -156,8 +155,9 @@ types:
       responses: 
         200:
           body: 
-            plain/text:
-              example: "The account has been updated"
+            application/json:
+              example: |
+                "The account has been updated"
     delete:
       responses: 
         200:

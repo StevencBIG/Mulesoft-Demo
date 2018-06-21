@@ -67,9 +67,12 @@ payload]]></dw:set-payload>
 ---
 [{
 	Name: payload.AccountName,
+	ParentId: payload.ParentAccount,
 	BillingState: payload.State,
 	Phone: payload.Phone,
-	Fax: payload.Fax
+	Fax: payload.Fax,
+	Industry: payload.Industry,
+	Description: payload.Description
 }]]]></dw:set-payload>
         </dw:transform-message>
         <logger message="#[payload]" level="INFO" doc:name="Logger"/>
@@ -106,6 +109,13 @@ payload]]></dw:set-payload>
         </apikit:mapping>
     </apikit:mapping-exception-strategy>
     <flow name="put:/accounts/{id}:salesforce-connect-sc-config">
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+}]]></dw:set-payload>
+        </dw:transform-message>
         <set-payload value="The account has been updated" doc:name="Set Payload"/>
     </flow>
 </mule>
