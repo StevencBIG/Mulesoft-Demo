@@ -21,12 +21,12 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
         <apikit:console config-ref="salesforce-connect-sc-config" doc:name="APIkit Console" />
     </flow>
     <flow name="get:/accounts:salesforce-connect-sc-config">
-        <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT Id,AccountNumber,Name,Phone,BillingState FROM Account" doc:name="Salesforce"/>
+        <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT AccountNumber,BillingState,Description,Id,Name,Phone,Website FROM Account" doc:name="Salesforce"/>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
     </flow>
     <flow name="get:/accounts/{id}:salesforce-connect-sc-config">
         <set-variable variableName="id" value="#[message.inboundProperties.'http.uri.params'.get('id')]" doc:name="id"/>
-        <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT AccountNumber,BillingState,Id,Name,Phone FROM Account WHERE Id = '#[flowVars.id]'" doc:name="Salesforce"/>
+        <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT AccountNumber,BillingState,Description,Id,Name,Phone,Website FROM Account WHERE Id = '#[flowVars.id]'" doc:name="Salesforce"/>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
         <choice doc:name="Choice">
             <when expression="#[!payload.equals(&quot;[]&quot;)]">
