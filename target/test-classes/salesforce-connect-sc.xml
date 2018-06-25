@@ -3,7 +3,6 @@
 xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ss="http://www.springframework.org/schema/security" xmlns:mule-ss="http://www.mulesoft.org/schema/mule/spring-security"
 
  xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
@@ -11,17 +10,18 @@ http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfd
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
-
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
 http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
-">
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/schema/mule/spring-security/3.1/mule-spring-security.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
 
 <spring:beans>
    <ss:authentication-manager alias="authenticationManager">
      <ss:authentication-provider>
        <ss:user-service id="userService">
           <ss:user name="admin" password="admin" authorities="ROLE_ADMIN" />
-          <ss:user name="user1" password="work4proj" authorities="ROLE_DEV" />
+          <ss:user name="aaronW" password="password" authorities="ROLE_DEV" />
         </ss:user-service>
     </ss:authentication-provider>
   </ss:authentication-manager>
@@ -36,6 +36,7 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
     <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8082" doc:name="HTTP Listener Configuration"/>
     <flow name="salesforce-connect-sc-main">
         <http:listener config-ref="salesforce-connect-sc-httpListenerConfig" path="/api/*" doc:name="HTTP" />
+        <http:basic-security-filter realm="mule-realm" doc:name="Authentication Filter"/>
         <apikit:router config-ref="salesforce-connect-sc-config" doc:name="APIkit Router" />
         <exception-strategy ref="salesforce-connect-sc-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy" />
     </flow>
@@ -86,7 +87,6 @@ payload]]></dw:set-payload>
         </choice>
     </flow>
     <flow name="post:/accounts:salesforce-connect-sc-config">
-    <mule-ss:http-security-filter realm="mule-realm" securityProviders="memory-provider"/>
         <logger message="#[payload]" level="INFO" doc:name="Logger"/>
         <dw:transform-message doc:name="Transform Message" metadata:id="6475bcd0-67af-47e2-b988-c31e09917c9f">
             <dw:set-payload><![CDATA[%dw 1.0
