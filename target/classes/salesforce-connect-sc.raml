@@ -3,6 +3,9 @@ baseUri: https://mocksvc.mulesoft.com/mocks/8c2a2432-0eea-452d-b863-48800559e108
 title: Salesforce-Connect-SC
 version: 2.2
 mediaType: application/json
+securitySchemes: 
+  basic:
+    type:  Basic Authentication
 
 types: 
   accountInfo:
@@ -37,7 +40,9 @@ types:
         required: true
 
 /accounts:
+  description: Retrieves all of the Company accounts
   get:
+    securedBy: [basic]
     queryParameters:
       Name:
         description: "Company Name"
@@ -72,6 +77,7 @@ types:
                 "Description": "Edge, founded in 1998, is a start-up based in Austin, TX. The company designs and manufactures a device to convert music from one digital format to another. Edge sells its product through retailers and its own website."
               }
   post:
+      securedBy: [basic]
       body: 
         type: accountInfo
         example: |
@@ -93,6 +99,7 @@ types:
 
   /{id}:
     get:
+      securedBy: [basic]
       responses: 
         200:
           body: 
@@ -113,6 +120,7 @@ types:
                 }
     
     put:
+      securedBy: [basic]
       responses: 
         200:
           body: 
@@ -120,6 +128,7 @@ types:
               example: |
                 "The account has been updated"
     delete:
+      securedBy: [basic]
       responses: 
         200:
           body: 
