@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" 
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:context="http://www.springframework.org/schema/context" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" 
 xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ss="http://www.springframework.org/schema/security" xmlns:mule-ss="http://www.mulesoft.org/schema/mule/spring-security"
 
  xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -14,26 +14,12 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/schema/mule/spring-security/3.1/mule-spring-security.xsd
-http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
 
-<spring:beans>
-   <ss:authentication-manager alias="authenticationManager">
-     <ss:authentication-provider>
-       <ss:user-service id="userService">
-          <ss:user name="admin" password="admin" authorities="ROLE_ADMIN" />
-          <ss:user name="aaronW" password="password" authorities="ROLE_DEV" />
-        </ss:user-service>
-    </ss:authentication-provider>
-  </ss:authentication-manager>
-</spring:beans>
-<mule-ss:security-manager name="muleSecurityManager" doc:name="Spring Security Provider">
-  <mule-ss:delegate-security-provider name="memory-provider" delegate-ref="authenticationManager" />
-</mule-ss:security-manager>
 
-    <http:listener-config name="salesforce-connect-sc-httpListenerConfig" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration" />
-    <apikit:config name="salesforce-connect-sc-config" raml="salesforce-connect-sc.raml" consoleEnabled="false" doc:name="Router" />
-    <sfdc:config name="Salesforce__Basic_Authentication" username="steven.cisneros@bitsinglass.com" password="BitsInGlass2018" securityToken="M9hfphcWpBcd9yMMnpIciAnQ8" doc:name="Salesforce: Basic Authentication" />
-    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8082" doc:name="HTTP Listener Configuration"/>
+
     <flow name="salesforce-connect-sc-main">
         <http:listener config-ref="salesforce-connect-sc-httpListenerConfig" path="/api/*" doc:name="HTTP" />
         <http:basic-security-filter realm="mule-realm" doc:name="Authentication Filter"/>
@@ -52,6 +38,7 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
     <flow name="get:/accounts/{id}:salesforce-connect-sc-config">
     <mule-ss:http-security-filter realm="mule-realm" securityProviders="memory-provider"/>
         <set-variable variableName="id" value="#[message.inboundProperties.'http.uri.params'.get('id')]" doc:name="id"/>
+        <validation:matches-regex message="ID did not match AlphaNumeric requirmenent of valid ID" value="#[flowVars.id]" regex="^[a-zA-Z0-9]+$" doc:name="Validation"/>
         <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT AccountNumber,BillingState,Description,Id,Name,Phone,Website FROM Account WHERE Id = '#[flowVars.id]'" doc:name="Salesforce"/>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
         <choice doc:name="Choice">
@@ -75,7 +62,7 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
 ---
 payload]]></dw:set-payload>
         </dw:transform-message>
-        <logger message="Delete response = #[payload], Payload ID = #[payload.id]" level="INFO" doc:name="delete account "/>
+        <logger message="Delete response = #[payload], Payload ID = #[payload.id]" level="DEBUG" doc:name="delete account " category="Delete"/>
         <choice doc:name="Choice">
             <when expression="#[payload.id == null]">
                 <set-payload value="the account with the id #[flowVars.id]" doc:name="account deleted "/>
@@ -87,7 +74,8 @@ payload]]></dw:set-payload>
         </choice>
     </flow>
     <flow name="post:/accounts:salesforce-connect-sc-config">
-        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    <mule-ss:http-security-filter realm="mule-realm" securityProviders="memory-provider"/>
+        <logger message="#[payload]" level="TRACE" doc:name="Pulling new accounts body data" category="Posting "/>
         <dw:transform-message doc:name="Transform Message" metadata:id="6475bcd0-67af-47e2-b988-c31e09917c9f">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
@@ -102,7 +90,7 @@ payload]]></dw:set-payload>
 	Description: payload.Description
 }]]]></dw:set-payload>
         </dw:transform-message>
-        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <logger message="#[payload]" level="TRACE" doc:name="Sending Transformed data" category="Posting"/>
         <sfdc:create config-ref="Salesforce__Basic_Authentication" type="Account" doc:name="Salesforce">
             <sfdc:objects ref="#[payload]"/>
         </sfdc:create>
@@ -136,7 +124,7 @@ payload]]></dw:set-payload>
         </apikit:mapping>
     </apikit:mapping-exception-strategy>
     <flow name="put:/accounts/{id}:salesforce-connect-sc-config">
-        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <logger message="#[payload]" level="TRACE" doc:name="Updated account data" category="Put"/>
         <dw:transform-message doc:name="Transform Message">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/java

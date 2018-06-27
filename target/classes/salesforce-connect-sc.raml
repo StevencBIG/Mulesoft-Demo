@@ -40,7 +40,7 @@ types:
         required: true
 
 /accounts:
-  description: Retrieves all of the Company accounts
+  description: Retrieves all of the company accounts/adds a new account.
   get:
     securedBy: [basic]
     queryParameters:
@@ -98,6 +98,7 @@ types:
 
 
   /{id}:
+    description: can retrieve/update/delete a single company account.
     get:
       securedBy: [basic]
       responses: 
