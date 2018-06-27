@@ -35,7 +35,7 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
         <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT AccountNumber,BillingState,Description,Id,Name,Phone,Website FROM Account" doc:name="Salesforce"/>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
     </flow>
-    <flow name="get:/accounts/{id}:salesforce-connect-sc-config">
+    <flow name="get:/accounts/{id}:salesforce-connect-sc-config" tracking:enable-default-events="true">
     <mule-ss:http-security-filter realm="mule-realm" securityProviders="memory-provider"/>
         <set-variable variableName="id" value="#[message.inboundProperties.'http.uri.params'.get('id')]" doc:name="id"/>
         <validation:matches-regex message="ID did not match AlphaNumeric requirmenent of valid ID" value="#[flowVars.id]" regex="^[a-zA-Z0-9]+$" doc:name="Validation"/>
@@ -44,14 +44,21 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
         <choice doc:name="Choice">
             <when expression="#[!payload.equals(&quot;[]&quot;)]">
                 <set-payload value="#[payload]" doc:name="Retrieve Account"/>
+                <tracking:custom-event event-name="Getting account by ID (passed)" doc:name="Custom Business Event">
+                    <tracking:meta-data key="ID" value="#[flowVars.id]"/>
+                </tracking:custom-event>
             </when>
             <otherwise>
                 <set-property propertyName="http status code " value="404" doc:name="HTTP status code 404"/>
                 <set-payload value="There is no account associated with this ID " doc:name="Set Payload"/>
+                <tracking:custom-event event-name="Getting account by ID (failed)" doc:name="Custom Business Event">
+                    <tracking:meta-data key="ID" value="#[flowVars.id]"/>
+                </tracking:custom-event>
             </otherwise>
         </choice>
+        <tracking:transaction id="get-accounts-id-#[java.util.UUID.randomUUID().toString()]"/>
     </flow>
-    <flow name="delete:/accounts/{id}:salesforce-connect-sc-config">
+    <flow name="delete:/accounts/{id}:salesforce-connect-sc-config" tracking:enable-default-events="true">
     <mule-ss:http-security-filter realm="mule-realm" securityProviders="memory-provider"/>
         <set-variable variableName="id" value="#[message.inboundProperties.'http.uri.params'.get('id')]" doc:name="id"/>
         <set-payload value="#[[flowVars.id]]" doc:name="Set Payload"/>
@@ -62,20 +69,27 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 ---
 payload]]></dw:set-payload>
         </dw:transform-message>
-        <logger message="Delete response = #[payload], Payload ID = #[payload.id]" level="INFO" doc:name="delete account "/>
+        <logger message="Delete response = #[payload], Payload ID = #[payload.id]" level="DEBUG" doc:name="delete account " category="Delete"/>
         <choice doc:name="Choice">
             <when expression="#[payload.id == null]">
                 <set-payload value="the account with the id #[flowVars.id]" doc:name="account deleted "/>
+                <tracking:custom-event event-name="deleting account by ID (pass)" doc:name="Custom Business Event">
+                    <tracking:meta-data key="ID" value="#[flowVars.id]"/>
+                </tracking:custom-event>
             </when>
             <otherwise>
                 <set-property propertyName="http status code " value="409" doc:name="HTTP Status 409"/>
                 <set-payload value="The account could not successfully be deleted" doc:name="account was not deleted "/>
+                <tracking:custom-event event-name="delete by account by ID (failed)" doc:name="Custom Business Event">
+                    <tracking:meta-data key="ID" value="#[flowVars.id]"/>
+                </tracking:custom-event>
             </otherwise>
         </choice>
+        <tracking:transaction id="delete-accounts-id-#[java.util.UUID.randomUUID().toString()]"/>
     </flow>
-    <flow name="post:/accounts:salesforce-connect-sc-config">
+    <flow name="post:/accounts:salesforce-connect-sc-config" tracking:enable-default-events="true">
     <mule-ss:http-security-filter realm="mule-realm" securityProviders="memory-provider"/>
-        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <logger message="#[payload]" level="TRACE" doc:name="Pulling new accounts body data" category="Posting "/>
         <dw:transform-message doc:name="Transform Message" metadata:id="6475bcd0-67af-47e2-b988-c31e09917c9f">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
@@ -90,11 +104,12 @@ payload]]></dw:set-payload>
 	Description: payload.Description
 }]]]></dw:set-payload>
         </dw:transform-message>
-        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <logger message="#[payload]" level="TRACE" doc:name="Sending Transformed data" category="Posting"/>
         <sfdc:create config-ref="Salesforce__Basic_Authentication" type="Account" doc:name="Salesforce">
             <sfdc:objects ref="#[payload]"/>
         </sfdc:create>
         <set-payload value="{&quot;message&quot;: &quot;Company was added&quot;}" doc:name="Set Payload" />
+        <tracking:transaction id="post-accounts-#[java.util.UUID.randomUUID().toString()]"/>
     </flow>
     <apikit:mapping-exception-strategy name="salesforce-connect-sc-apiKitGlobalExceptionMapping">
         <apikit:mapping statusCode="404">
@@ -123,8 +138,8 @@ payload]]></dw:set-payload>
             <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload" />
         </apikit:mapping>
     </apikit:mapping-exception-strategy>
-    <flow name="put:/accounts/{id}:salesforce-connect-sc-config">
-        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    <flow name="put:/accounts/{id}:salesforce-connect-sc-config" tracking:enable-default-events="true">
+        <logger message="#[payload]" level="TRACE" doc:name="Updated account data" category="Put"/>
         <dw:transform-message doc:name="Transform Message">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
@@ -143,6 +158,27 @@ payload]]></dw:set-payload>
         <sfdc:update config-ref="Salesforce__Basic_Authentication" type="Account" doc:name="Salesforce">
             <sfdc:objects ref="#[payload]"/>
         </sfdc:update>
-        <set-payload value="The account has been updated" doc:name="Set Payload"/>
+        <dw:transform-message doc:name="Copy_of_Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <choice doc:name="Choice">
+            <when expression="#[payload != null]">
+                <set-payload value="The account has been updated" doc:name="Account updated"/>
+                <tracking:custom-event event-name="Updated account by ID (passed)" doc:name="Custom Business Event">
+                    <tracking:meta-data key="ID" value="#[flowVars.id]"/>
+                </tracking:custom-event>
+            </when>
+            <otherwise>
+                <set-property propertyName="http status code " value="404" doc:name="HTTP status code 404"/>
+                <set-payload value="The account could not be updated " doc:name="Account not updated"/>
+                <tracking:custom-event event-name="Updated account by ID (failed)" doc:name="Custom Business Event">
+                    <tracking:meta-data key="ID" value="#[flowVars.id]"/>
+                </tracking:custom-event>
+            </otherwise>
+        </choice>
+        <tracking:transaction id="put-accounts-id-#[java.util.UUID.randomUUID().toString()]"/>
     </flow>
 </mule>
