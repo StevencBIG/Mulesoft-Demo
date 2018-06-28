@@ -40,6 +40,7 @@
       <attribute value="test" name="org.mule.tooling.scope"/>
     </attributes>
   </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/com/microsoft/sqlserver/mssql-jdbc/6.3.4.jre8-preview/mssql-jdbc-6.3.4.jre8-preview.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mule/tools/devkit/mule-devkit-shade/3.9.3/mule-devkit-shade-3.9.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/mulesoft/modules/mule-interceptor-module/3.9.1/mule-interceptor-module-3.9.1.jar">
     <attributes>

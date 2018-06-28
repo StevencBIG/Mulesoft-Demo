@@ -48,14 +48,13 @@ http://www.mulesoft.org/schema/mule/secure-property-placeholder http://www.mules
 </mule-ss:security-manager>
     
 
-<http:listener-config name="salesforce-connect-sc-httpListenerConfig" host="${http.host}" port="${http.port}" doc:name="HTTP Listener Configuration" protocol="HTTPS">
+<http:listener-config name="salesforce-connect-sc-httpListenerConfig" host="0.0.0.0" port="${https.port}" doc:name="HTTP Listener Configuration" protocol="HTTPS">
         <tls:context>
             <tls:key-store type="jks" path="keystore.jks" alias="mule" keyPassword="password" password="password"/>
         </tls:context>
     </http:listener-config>
     <apikit:config name="salesforce-connect-sc-config" raml="salesforce-connect-sc.raml" consoleEnabled="false" doc:name="Router" />
     <sfdc:config name="Salesforce__Basic_Authentication" username="${salesforce.username}" password="BitsInGlass2018" securityToken="${salesforce.securityToken}" doc:name="Salesforce: Basic Authentication" url="${salesforce.authorizationURL}"/>
-    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8082" doc:name="HTTP Listener Configuration"/>
     <secure-property-placeholder:config name="Secure_Property_Placeholder" key="${securityKey}" location="demo-${mule.env}.properties" doc:name="Secure Property Placeholder"/>
 
 </mule>

@@ -236,6 +236,17 @@
             <version>${mule.version}</version>
             <scope>provided</scope>
         </dependency>
+    <dependency>
+            <groupId>org.mule.modules</groupId>
+            <artifactId>mule-module-db</artifactId>
+            <version>${mule.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+           <artifactId>mssql-jdbc</artifactId>
+           <version>6.3.4.jre8-preview</version>
+        </dependency>
     </dependencies>
 
 	<repositories>
